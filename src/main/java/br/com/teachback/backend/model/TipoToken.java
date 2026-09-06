@@ -1,6 +1,6 @@
 package br.com.teachback.backend.model;
 
-public enum Tipo {
+public enum TipoToken {
     CONFIRMACAO_EMAIL,
     REDEFINICAO_SENHA
 }

@@ -22,7 +22,7 @@ public class TokenConfirmacao {
 
     @Column(nullable = false, length = 30)
     @Enumerated(EnumType.STRING)
-    private Tipo tipo;
+    private TipoToken tipoToken;
 
     @Column(nullable = false)
     private LocalDateTime expiraEm;
