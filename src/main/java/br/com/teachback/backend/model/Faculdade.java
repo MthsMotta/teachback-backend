@@ -24,7 +24,4 @@ public class Faculdade {
 
     @Column(length=20)
     private String exemploTurma;
-
-    @OneToMany(mappedBy = "faculdade", fetch=FetchType.LAZY, cascade=CascadeType.ALL)
-    private List<FaculdadeDominio> dominios;
 }

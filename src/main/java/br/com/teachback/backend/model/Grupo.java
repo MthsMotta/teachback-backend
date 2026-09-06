@@ -37,12 +37,10 @@ public class Grupo {
     private LocalDateTime criadoEm;
 
     @Column(nullable=false)
-    @CreationTimestamp
     @UpdateTimestamp
     private LocalDateTime ultimaAtividadeEm;
 
     @Column(nullable=false)
-    @CreationTimestamp
     @UpdateTimestamp
     private LocalDateTime atualizadoEm;
 }
