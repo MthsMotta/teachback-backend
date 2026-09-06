@@ -50,7 +50,6 @@ public class Usuario {
     private LocalDateTime criadoEm;
 
     @Column(nullable=false)
-    @CreationTimestamp
     @UpdateTimestamp
     private LocalDateTime atualizadoEm;
 }
