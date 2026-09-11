@@ -1,13 +1,19 @@
 package br.com.teachback.backend.service;
 
 import br.com.teachback.backend.dto.request.CadastroRequest;
+import br.com.teachback.backend.dto.request.LoginRequest;
+import br.com.teachback.backend.dto.response.LoginResponse;
 import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
+import br.com.teachback.backend.exception.TokenExpiradoException;
 import br.com.teachback.backend.model.*;
 import br.com.teachback.backend.repositories.FaculdadeDominioRepository;
 import br.com.teachback.backend.repositories.FaculdadeRepository;
 import br.com.teachback.backend.repositories.TokenConfirmacaoRepository;
 import br.com.teachback.backend.repositories.UsuarioRepository;
+import br.com.teachback.backend.security.TokenService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,20 +27,22 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final FaculdadeRepository faculdadeRepository;
-    private final AuthorizationService authorizationService;
     private final PasswordEncoder passwordEncoder;
     private final FaculdadeDominioRepository faculdadeDominioRepository;
     private final TokenConfirmacaoRepository tokenConfirmacaoRepository;
     private final EmailService emailService;
+    private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
 
-    public AuthService(UsuarioRepository usuarioRepository, FaculdadeRepository faculdadeRepository, AuthorizationService authorizationService, PasswordEncoder passwordEncoder, FaculdadeDominioRepository faculdadeDominioRepository, TokenConfirmacaoRepository tokenConfirmacaoRepository, EmailService emailService) {
+    public AuthService(UsuarioRepository usuarioRepository, FaculdadeRepository faculdadeRepository, PasswordEncoder passwordEncoder, FaculdadeDominioRepository faculdadeDominioRepository, TokenConfirmacaoRepository tokenConfirmacaoRepository, EmailService emailService, AuthenticationManager authenticationManager, TokenService tokenService) {
         this.usuarioRepository = usuarioRepository;
         this.faculdadeRepository = faculdadeRepository;
-        this.authorizationService = authorizationService;
         this.passwordEncoder = passwordEncoder;
         this.faculdadeDominioRepository = faculdadeDominioRepository;
         this.tokenConfirmacaoRepository = tokenConfirmacaoRepository;
         this.emailService = emailService;
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
     }
 
     @Transactional
@@ -61,15 +69,41 @@ public class AuthService {
         usuario.setFaculdade(faculdade);
         usuarioRepository.save(usuario);
 
-        TokenConfirmacao tokenConfirmacao = new TokenConfirmacao();
-        tokenConfirmacao.setToken(UUID.randomUUID().toString());
-        tokenConfirmacao.setExpiraEm(LocalDateTime.now().plusHours(24));
-        tokenConfirmacao.setTipoToken(TipoToken.CONFIRMACAO_EMAIL);
-        tokenConfirmacao.setUsuario(usuario);
-        tokenConfirmacaoRepository.save(tokenConfirmacao);
+        TokenConfirmacao token = new TokenConfirmacao();
+        token.setToken(UUID.randomUUID().toString());
+        token.setTipoToken(TipoToken.CONFIRMACAO_EMAIL);
+        token.setExpiraEm(LocalDateTime.now().plusMinutes(15));
+        token.setUsuario(usuario);
+        tokenConfirmacaoRepository.save(token);
 
         emailService.enviarEmailToken(usuario.getEmail(),
-                "Novo usuários cadastrado",
-                 "Você está recebendo um email de cadastro");
+                "Confirmação de cadastro - TeachBack",
+                "Confirme seu cadastro clicando no link: http://localhost:8080/auth/confirmar?token=" + token.getToken());
+    }
+
+    public LoginResponse login(LoginRequest loginRequest){
+        var usuarioSenha = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.senha());
+        var auth = authenticationManager.authenticate(usuarioSenha);
+        Usuario usuario =  (Usuario) auth.getPrincipal();
+        var token = tokenService.generateToken(usuario);
+        return new LoginResponse(token, usuario.getNome(), usuario.getRole());
+    }
+
+    @Transactional
+    public void confirmarEmail(String token){
+        TokenConfirmacao tokenConfirmacao = tokenConfirmacaoRepository.findByToken(token)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Token inválido"));
+        if(LocalDateTime.now().isAfter(tokenConfirmacao.getExpiraEm())){
+            throw new TokenExpiradoException("Token expirado");
+        }
+        Usuario usuario = tokenConfirmacao.getUsuario();
+        if(usuario.getRole() == Role.ALUNO){
+            usuario.setStatus(StatusUsuario.ATIVO);
+        }
+        else if(usuario.getRole() == Role.PROFESSOR){
+            usuario.setStatus(StatusUsuario.PENDENTE_APROVACAO);
+        }
+        usuarioRepository.save(usuario);
+        tokenConfirmacaoRepository.delete(tokenConfirmacao);
     }
 }

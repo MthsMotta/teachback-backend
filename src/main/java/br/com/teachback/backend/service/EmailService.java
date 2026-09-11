@@ -1,6 +1,5 @@
 package br.com.teachback.backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -9,13 +8,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender;
+
+    public EmailService(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+    }
 
     @Value("${spring.mail.username}")
     private String remetente;
 
-    public String enviarEmailToken(String destinatario, String assunto, String mensagem){
+
+    public void enviarEmailToken(String destinatario, String assunto, String mensagem){
         try{
             SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
             simpleMailMessage.setFrom(remetente);
@@ -23,9 +26,8 @@ public class EmailService {
             simpleMailMessage.setSubject(assunto);
             simpleMailMessage.setText(mensagem);
             javaMailSender.send(simpleMailMessage);
-            return "Email enviado";
         } catch(Exception e){
-            return "Erro ao tentar enviar o e-mail" + e.getLocalizedMessage();
+            throw new RuntimeException("Erro ao enviar e-mail", e);
         }
     }
 }
