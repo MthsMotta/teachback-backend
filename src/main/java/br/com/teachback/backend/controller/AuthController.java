@@ -1,6 +1,7 @@
 package br.com.teachback.backend.controller;
 
 import br.com.teachback.backend.dto.request.CadastroRequest;
+import br.com.teachback.backend.dto.request.EmailRequest;
 import br.com.teachback.backend.dto.request.LoginRequest;
 import br.com.teachback.backend.dto.response.LoginResponse;
 import br.com.teachback.backend.dto.response.MensagemResponse;
@@ -8,6 +9,7 @@ import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.TokenExpiradoException;
 import br.com.teachback.backend.service.AuthService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,11 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/reenviar-confirmacao")
+    public ResponseEntity<MensagemResponse> reenviarConfirmacao(@Valid @RequestBody EmailRequest request) {
+        authService.reenviarConfirmacao(request.email());
+        return ResponseEntity.ok(new MensagemResponse("Se o e-mail informado estiver pendente de confirmação, um novo link foi enviado."));
+    }
 
     @GetMapping("/confirmar")
     public ResponseEntity<String> confirmarEmail(@RequestParam String token){

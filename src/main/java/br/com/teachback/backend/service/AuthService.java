@@ -72,7 +72,7 @@ public class AuthService {
         TokenConfirmacao token = new TokenConfirmacao();
         token.setToken(UUID.randomUUID().toString());
         token.setTipoToken(TipoToken.CONFIRMACAO_EMAIL);
-        token.setExpiraEm(LocalDateTime.now().plusMinutes(15));
+        token.setExpiraEm(LocalDateTime.now().plusMinutes(5));
         token.setUsuario(usuario);
         tokenConfirmacaoRepository.save(token);
 
@@ -105,5 +105,29 @@ public class AuthService {
         }
         usuarioRepository.save(usuario);
         tokenConfirmacaoRepository.delete(tokenConfirmacao);
+    }
+
+    public void reenviarConfirmacao(String email){
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
+
+        if(usuarioOpt.isEmpty() || usuarioOpt.get().getStatus() != StatusUsuario.PENDENTE_CONFIRMACAO){
+            return;
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        Optional<TokenConfirmacao> tokenAntigo = tokenConfirmacaoRepository.findByUsuario(usuario);
+        tokenAntigo.ifPresent(tokenConfirmacaoRepository::delete);
+
+        TokenConfirmacao token = new TokenConfirmacao();
+        token.setToken(UUID.randomUUID().toString());
+        token.setTipoToken(TipoToken.CONFIRMACAO_EMAIL);
+        token.setExpiraEm(LocalDateTime.now().plusMinutes(5));
+        token.setUsuario(usuario);
+        tokenConfirmacaoRepository.save(token);
+
+        emailService.enviarEmailToken(usuario.getEmail(),
+                "Reenvio da confirmação de cadastro - TeachBack",
+                "Confirme seu cadastro clicando no link: http://localhost:8080/auth/confirmar?token=" + token.getToken());
     }
 }
