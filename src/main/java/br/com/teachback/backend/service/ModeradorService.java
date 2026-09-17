@@ -2,6 +2,7 @@ package br.com.teachback.backend.service;
 
 import br.com.teachback.backend.dto.request.ModeradorRequest;
 import br.com.teachback.backend.dto.response.ModeradorResponse;
+import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
 import br.com.teachback.backend.mapper.ModeradorMapper;
 import br.com.teachback.backend.model.*;
@@ -58,5 +59,28 @@ public class ModeradorService {
         var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         List<Usuario> moderadores = usuarioRepository.findByFaculdadeAndRole(usuarioLogado.getFaculdade(), Role.MODERADOR);
         return moderadores.stream().map(ModeradorMapper::toDTO).toList();
+    }
+
+    private Usuario buscarModeradorDaFaculdade(Long id){
+        var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        Usuario moderador = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Moderador não encontrado"));
+        if(!moderador.getFaculdade().getId().equals(usuarioLogado.getFaculdade().getId())){
+            throw new RegraDeNegocioException("Você só pode gerenciar moderadores da sua própria faculdade");
+        }
+        if(moderador.getRole() != Role.MODERADOR){
+            throw new RegraDeNegocioException("Este usuário não é um moderador");
+        }
+        return moderador;
+    }
+
+    @Transactional
+    public void desativarModerador(Long id){
+        buscarModeradorDaFaculdade(id).setStatus(StatusUsuario.INATIVO);
+    }
+
+    @Transactional
+    public void ativarModerador(Long id){
+        buscarModeradorDaFaculdade(id).setStatus(StatusUsuario.ATIVO);
     }
 }

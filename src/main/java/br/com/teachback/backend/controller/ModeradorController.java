@@ -34,4 +34,18 @@ public class ModeradorController {
     public ResponseEntity<List<ModeradorResponse>> listar(){
         return ResponseEntity.ok(moderadorService.listar());
     }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE')")
+    @PatchMapping("/{id}/desativar")
+    public ResponseEntity<MensagemResponse> desativarModerador(@PathVariable Long id){
+        moderadorService.desativarModerador(id);
+        return ResponseEntity.ok(new MensagemResponse("Moderador desativado com sucesso"));
+    }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE')")
+    @PatchMapping("/{id}/ativar")
+    public ResponseEntity<MensagemResponse> ativarModerador(@PathVariable Long id){
+        moderadorService.ativarModerador(id);
+        return ResponseEntity.ok(new MensagemResponse("Moderador ativado com sucesso"));
+    }
 }
