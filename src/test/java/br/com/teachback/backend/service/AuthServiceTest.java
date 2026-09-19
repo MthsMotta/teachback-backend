@@ -3,6 +3,7 @@ package br.com.teachback.backend.service;
 import br.com.teachback.backend.dto.request.CadastroRequest;
 import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
+import br.com.teachback.backend.exception.TokenExpiradoException;
 import br.com.teachback.backend.model.*;
 import br.com.teachback.backend.repositories.FaculdadeDominioRepository;
 import br.com.teachback.backend.repositories.FaculdadeRepository;
@@ -143,7 +144,57 @@ class AuthServiceTest {
     }
 
     @Test
-    void confirmarEmail() {
+    @DisplayName("Confirmação de email com sucesso")
+    void confirmarEmailTest() {
+        Usuario aluno =  TestDataFactory.criarUsuarioAluno();
+        TokenConfirmacao tokenConfirmacao = TestDataFactory.criarTokenValido(aluno);
+
+        when(tokenConfirmacaoRepository.findByToken(tokenConfirmacao.getToken())).thenReturn(Optional.of(tokenConfirmacao));
+
+        authService.confirmarEmail(tokenConfirmacao.getToken());
+
+        ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(captor.capture());
+        Usuario usuarioAtualizado = captor.getValue();
+        assertThat(usuarioAtualizado.getStatus()).isEqualTo(StatusUsuario.ATIVO);
+        verify(tokenConfirmacaoRepository).delete(tokenConfirmacao);
+    }
+
+    @Test
+    @DisplayName("Confirmação de email com sucesso para Professor")
+    void confirmarEmailTest2() {
+        Usuario professor =  TestDataFactory.criarUsuarioProfessor();
+        TokenConfirmacao tokenConfirmacao = TestDataFactory.criarTokenValido(professor);
+
+        when(tokenConfirmacaoRepository.findByToken(tokenConfirmacao.getToken())).thenReturn(Optional.of(tokenConfirmacao));
+
+        authService.confirmarEmail(tokenConfirmacao.getToken());
+
+        ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(captor.capture());
+        Usuario usuarioAtualizado = captor.getValue();
+        assertThat(usuarioAtualizado.getStatus()).isEqualTo(StatusUsuario.PENDENTE_APROVACAO);
+        verify(tokenConfirmacaoRepository).delete(tokenConfirmacao);
+    }
+
+    @Test
+    @DisplayName("Token não encontrado")
+    void tokenNaoEncontradoTest(){
+        when(tokenConfirmacaoRepository.findByToken(anyString())).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNaoEncontradoException.class, () -> authService.confirmarEmail("token-inexistente"));
+    }
+
+    @Test
+    @DisplayName("Token expirado")
+    void tokenExpiradoTest(){
+        Usuario aluno = TestDataFactory.criarUsuarioAluno();
+        TokenConfirmacao tokenExpirado = TestDataFactory.criarTokenExpirado(aluno);
+
+        when(tokenConfirmacaoRepository.findByToken(tokenExpirado.getToken())).thenReturn(Optional.of(tokenExpirado));
+
+        assertThrows(TokenExpiradoException.class, () -> authService.confirmarEmail(tokenExpirado.getToken()));
+        verify(tokenConfirmacaoRepository, never()).delete(any(TokenConfirmacao.class));
     }
 
     @Test
