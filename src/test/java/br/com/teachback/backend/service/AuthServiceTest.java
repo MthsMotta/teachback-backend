@@ -1,6 +1,8 @@
 package br.com.teachback.backend.service;
 
 import br.com.teachback.backend.dto.request.CadastroRequest;
+import br.com.teachback.backend.dto.request.LoginRequest;
+import br.com.teachback.backend.dto.response.LoginResponse;
 import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
 import br.com.teachback.backend.exception.TokenExpiradoException;
@@ -17,8 +19,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -106,7 +111,7 @@ class AuthServiceTest {
 
     @Test
     @DisplayName("Faculdade não encontrada")
-    void faculdadeNaoEncontrada(){
+    void faculdadeNaoEncontradaTest(){
         CadastroRequest cadastro = TestDataFactory.criarCadastroRequest(RoleCadastro.ALUNO);
 
         when(usuarioRepository.findByEmail(cadastro.email())).thenReturn(Optional.empty());
@@ -118,7 +123,7 @@ class AuthServiceTest {
 
     @Test
     @DisplayName("Cadastro de professor com sucesso")
-    void cadastroDeProfessor(){
+    void cadastroDeProfessorTest(){
         Faculdade faculdade = TestDataFactory.criarFaculdade();
         FaculdadeDominio faculdadeDominio = TestDataFactory.criarFaculdadeDominio(faculdade);
         CadastroRequest cadastro = TestDataFactory.criarCadastroRequest(RoleCadastro.PROFESSOR);
@@ -140,7 +145,27 @@ class AuthServiceTest {
     }
 
     @Test
-    void login() {
+    @DisplayName("Login realizado com sucesso")
+    void loginTest() {
+        Usuario usuario = TestDataFactory.criarUsuario(Role.ALUNO, StatusUsuario.ATIVO);
+        Authentication authMock = Mockito.mock(Authentication.class);
+
+        when(authMock.getPrincipal()).thenReturn(usuario);
+        when(authenticationManager.authenticate(any())).thenReturn(authMock);
+        when(tokenService.generateToken(usuario)).thenReturn("token-fake");
+
+        LoginResponse response = authService.login(new LoginRequest(usuario.getEmail(), usuario.getSenha()));
+
+        assertThat(response.token()).isEqualTo("token-fake");
+        assertThat(response.nome()).isEqualTo(usuario.getNome());
+        assertThat(response.role()).isEqualTo(usuario.getRole());
+    }
+
+    @Test
+    @DisplayName("Credenciais incorretas")
+    void loginTest2() {
+        when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Credenciais invalidas"));
+        assertThrows(BadCredentialsException.class, () -> authService.login(new LoginRequest("usuario@teste.com", "senhaErrada123")));
     }
 
     @Test
@@ -198,6 +223,43 @@ class AuthServiceTest {
     }
 
     @Test
-    void reenviarConfirmacao() {
+    @DisplayName("Email não encontrado para reenvio")
+    void reenviarConfirmacaoTest() {
+        when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        authService.reenviarConfirmacao("naoexiste@teste.com");
+        verify(emailService, never()).enviarEmailToken(anyString(), anyString(), anyString());
+        verify(tokenConfirmacaoRepository, never()).save(any(TokenConfirmacao.class));
+    }
+
+    @Test
+    @DisplayName("Email já confirmado")
+    void reenviarConfirmacaoTest2() {
+        Usuario alunoAtivo =  TestDataFactory.criarUsuario(Role.ALUNO, StatusUsuario.ATIVO);
+
+        when(usuarioRepository.findByEmail(alunoAtivo.getEmail())).thenReturn(Optional.of(alunoAtivo));
+
+        authService.reenviarConfirmacao(alunoAtivo.getEmail());
+
+        verify(emailService, never()).enviarEmailToken(anyString(), anyString(), anyString());
+        verify(tokenConfirmacaoRepository, never()).save(any(TokenConfirmacao.class));
+    }
+
+    @Test
+    @DisplayName("Reenvio de email com sucesso")
+    void reenviarConfirmacaoTest3() {
+        Usuario aluno =  TestDataFactory.criarUsuario(Role.ALUNO, StatusUsuario.PENDENTE_CONFIRMACAO);
+        TokenConfirmacao tokenAntigo = TestDataFactory.criarTokenExpirado(aluno);
+
+        when(usuarioRepository.findByEmail(aluno.getEmail())).thenReturn(Optional.of(aluno));
+        when(tokenConfirmacaoRepository.findByUsuario(aluno)).thenReturn(Optional.of(tokenAntigo));
+
+        authService.reenviarConfirmacao(aluno.getEmail());
+
+        ArgumentCaptor<String> emailCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(tokenConfirmacaoRepository).save(any(TokenConfirmacao.class));
+        verify(emailService).enviarEmailToken(emailCaptor.capture(), anyString(), anyString());
+        assertThat(emailCaptor.getValue()).isEqualTo(aluno.getEmail());
+        verify(tokenConfirmacaoRepository).delete(tokenAntigo);
     }
 }
