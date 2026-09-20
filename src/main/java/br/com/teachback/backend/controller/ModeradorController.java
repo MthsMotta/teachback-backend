@@ -48,4 +48,32 @@ public class ModeradorController {
         moderadorService.ativarModerador(id);
         return ResponseEntity.ok(new MensagemResponse("Moderador ativado com sucesso"));
     }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE') or hasRole('MODERADOR')")
+    @PatchMapping("/{id}/rejeitar-professor")
+    public ResponseEntity<MensagemResponse> rejeitarProfessor(@PathVariable Long id){
+        moderadorService.rejeitarProfessor(id);
+        return ResponseEntity.ok(new MensagemResponse("Professor rejeitado com sucesso"));
+    }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE') or hasRole('MODERADOR')")
+    @PatchMapping("/{id}/aprovar-professor")
+    public ResponseEntity<MensagemResponse> aprovarProfessor(@PathVariable Long id){
+        moderadorService.aprovarProfessor(id);
+        return ResponseEntity.ok(new MensagemResponse("Professor aprovado com sucesso"));
+    }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE') or hasRole('MODERADOR')")
+    @PatchMapping("/{id}/desativar-professor")
+    public ResponseEntity<MensagemResponse> desativarProfessor(@PathVariable Long id){
+        moderadorService.desativarProfessor(id);
+        return ResponseEntity.ok(new MensagemResponse("Professor desativado com sucesso"));
+    }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE') or hasRole('MODERADOR')")
+    @PatchMapping("/{id}/ativar-professor")
+    public ResponseEntity<MensagemResponse> ativarProfessor(@PathVariable Long id){
+        moderadorService.ativarProfessor(id);
+        return ResponseEntity.ok(new MensagemResponse("Professor ativado com sucesso"));
+    }
 }

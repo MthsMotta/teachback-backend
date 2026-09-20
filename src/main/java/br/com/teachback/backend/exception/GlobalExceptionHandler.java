@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<?> handleDisabledException(DisabledException ex){
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Confirme seu e-mail antes de fazer login");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Sua conta ainda não está liberada para acesso. Verifique seu e-mail ou aguarde aprovação.");
     }
 
     @ExceptionHandler(LockedException.class)

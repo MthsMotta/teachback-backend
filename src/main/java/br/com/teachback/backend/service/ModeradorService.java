@@ -83,4 +83,56 @@ public class ModeradorService {
     public void ativarModerador(Long id){
         buscarModeradorDaFaculdade(id).setStatus(StatusUsuario.ATIVO);
     }
+
+    private Usuario buscarProfessorDaFaculdade(Long id){
+        var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        Usuario professor = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Professor não encontrado"));
+        if(!usuarioLogado.getFaculdade().getId().equals(professor.getFaculdade().getId())){
+            throw new RegraDeNegocioException("Você só pode agir sobre professores da sua própria faculdade");
+        }
+        if(professor.getRole() != Role.PROFESSOR){
+            throw new RegraDeNegocioException("Você só pode agir sobre contas de professor");
+        }
+        if(professor.getStatus() != StatusUsuario.PENDENTE_APROVACAO){
+            throw new RegraDeNegocioException("Você só pode agir sobre professores pendentes de aprovação");
+        }
+        return professor;
+    }
+
+    private Usuario buscarProfessorAtivoDaFaculdade(Long id){
+        var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        Usuario professor = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Professor não encontrado"));
+        if(!usuarioLogado.getFaculdade().getId().equals(professor.getFaculdade().getId())){
+            throw new RegraDeNegocioException("Você só pode agir sobre professores da sua própria faculdade");
+        }
+        if(professor.getRole() != Role.PROFESSOR){
+            throw new RegraDeNegocioException("Você só pode agir sobre contas de professor");
+        }
+        if(professor.getStatus() != StatusUsuario.ATIVO && professor.getStatus() != StatusUsuario.INATIVO){
+            throw new RegraDeNegocioException("Você só pode agir sobre professores ativos ou inativos");
+        }
+        return professor;
+    }
+
+    @Transactional
+    public void rejeitarProfessor(Long id){
+        buscarProfessorDaFaculdade(id).setStatus(StatusUsuario.INATIVO);
+    }
+
+    @Transactional
+    public void aprovarProfessor(Long id){
+        buscarProfessorDaFaculdade(id).setStatus(StatusUsuario.ATIVO);
+    }
+
+    @Transactional
+    public void desativarProfessor(Long id){
+        buscarProfessorAtivoDaFaculdade(id).setStatus(StatusUsuario.INATIVO);
+    }
+
+    @Transactional
+    public void ativarProfessor(Long id){
+        buscarProfessorAtivoDaFaculdade(id).setStatus(StatusUsuario.ATIVO);
+    }
 }
