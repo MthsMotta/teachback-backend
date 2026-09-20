@@ -1,8 +1,10 @@
 package br.com.teachback.backend.service;
 
+import br.com.teachback.backend.config.CacheConfig;
 import br.com.teachback.backend.dto.request.CadastroRequest;
 import br.com.teachback.backend.dto.request.LoginRequest;
 import br.com.teachback.backend.dto.response.LoginResponse;
+import br.com.teachback.backend.exception.LimiteTentativasExcedidoException;
 import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
 import br.com.teachback.backend.exception.TokenExpiradoException;
@@ -12,7 +14,9 @@ import br.com.teachback.backend.repositories.FaculdadeRepository;
 import br.com.teachback.backend.repositories.TokenConfirmacaoRepository;
 import br.com.teachback.backend.repositories.UsuarioRepository;
 import br.com.teachback.backend.security.TokenService;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,8 +37,9 @@ public class AuthService {
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+    private final Cache<String, Integer> loginAttemptsCache;
 
-    public AuthService(UsuarioRepository usuarioRepository, FaculdadeRepository faculdadeRepository, PasswordEncoder passwordEncoder, FaculdadeDominioRepository faculdadeDominioRepository, TokenConfirmacaoRepository tokenConfirmacaoRepository, EmailService emailService, AuthenticationManager authenticationManager, TokenService tokenService) {
+    public AuthService(UsuarioRepository usuarioRepository, FaculdadeRepository faculdadeRepository, PasswordEncoder passwordEncoder, FaculdadeDominioRepository faculdadeDominioRepository, TokenConfirmacaoRepository tokenConfirmacaoRepository, EmailService emailService, AuthenticationManager authenticationManager, TokenService tokenService, Cache<String, Integer> loginAttemptsCache) {
         this.usuarioRepository = usuarioRepository;
         this.faculdadeRepository = faculdadeRepository;
         this.passwordEncoder = passwordEncoder;
@@ -43,6 +48,7 @@ public class AuthService {
         this.emailService = emailService;
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
+        this.loginAttemptsCache = loginAttemptsCache;
     }
 
     @Transactional
@@ -82,11 +88,26 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest loginRequest){
-        var usuarioSenha = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.senha());
-        var auth = authenticationManager.authenticate(usuarioSenha);
-        Usuario usuario =  (Usuario) auth.getPrincipal();
-        var token = tokenService.generateToken(usuario);
-        return new LoginResponse(token, usuario.getNome(), usuario.getRole());
+        String email = loginRequest.email();
+
+        Integer tentativas = loginAttemptsCache.getIfPresent(email);
+        if(tentativas != null && tentativas >= 5){
+            throw new LimiteTentativasExcedidoException("Muitas tentativas de login. Tente novamente mais tarde.");
+        }
+
+        try{
+            var usuarioSenha = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.senha());
+            var auth = authenticationManager.authenticate(usuarioSenha);
+            Usuario usuario =  (Usuario) auth.getPrincipal();
+            var token = tokenService.generateToken(usuario);
+
+            loginAttemptsCache.invalidate(email);
+
+            return new LoginResponse(token, usuario.getNome(), usuario.getRole());
+        } catch (BadCredentialsException e) {
+            loginAttemptsCache.asMap().compute(email, (key, val) -> val == null ? 1 : val + 1);
+            throw e;
+        }
     }
 
     @Transactional

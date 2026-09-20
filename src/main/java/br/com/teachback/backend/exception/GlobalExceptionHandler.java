@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> handleBadCredentialsException(BadCredentialsException ex){
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("E-mail ou sesenha inválidos");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("E-mail ou senha inválidos");
     }
 
     @ExceptionHandler(DisabledException.class)
@@ -62,5 +62,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<?> handleLockedException(LockedException ex){
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Sua conta está suspensa");
+    }
+
+    @ExceptionHandler(LimiteTentativasExcedidoException.class)
+    public ResponseEntity<?> handleLimiteTentativasExcedidoException(LimiteTentativasExcedidoException ex){
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ex.getMessage());
     }
 }

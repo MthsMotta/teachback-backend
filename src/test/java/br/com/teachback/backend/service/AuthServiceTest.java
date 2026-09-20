@@ -13,6 +13,7 @@ import br.com.teachback.backend.repositories.TokenConfirmacaoRepository;
 import br.com.teachback.backend.repositories.UsuarioRepository;
 import br.com.teachback.backend.security.TokenService;
 import br.com.teachback.backend.util.TestDataFactory;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,6 +61,9 @@ class AuthServiceTest {
 
     @Mock
     private TokenService tokenService;
+
+    @Mock
+    private Cache<String, Integer> loginAttemptsCache;
 
     @InjectMocks
     private AuthService authService;
@@ -165,6 +170,7 @@ class AuthServiceTest {
     @DisplayName("Credenciais incorretas")
     void loginTest2() {
         when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Credenciais invalidas"));
+        when(loginAttemptsCache.asMap()).thenReturn(new ConcurrentHashMap<>());
         assertThrows(BadCredentialsException.class, () -> authService.login(new LoginRequest("usuario@teste.com", "senhaErrada123")));
     }
 
