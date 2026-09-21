@@ -22,8 +22,8 @@ public class FaculdadeService {
     }
 
     public FaculdadeResponse cadastrar(FaculdadeRequest request) {
-        if (faculdadeRepository.findByNome(request.nome()).isPresent()){
-            throw new RegraDeNegocioException("Já existe uma faculdade com esse nome.");
+        if (faculdadeRepository.findByNomeAndSigla(request.nome(), request.sigla()).isPresent()){
+            throw new RegraDeNegocioException("Já existe uma faculdade com esse nome e sigla.");
         }
         Faculdade faculdade = FaculdadeMapper.toEntity(request);
         return FaculdadeMapper.toDTO(faculdadeRepository.save(faculdade));
@@ -32,6 +32,13 @@ public class FaculdadeService {
     @Transactional
     public FaculdadeResponse atualizar(Long id, FaculdadeRequest request) {
         Faculdade faculdade = faculdadeRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Faculdade não encontrada"));
+
+        faculdadeRepository.findByNomeAndSigla(request.nome(), request.sigla())
+                .filter(f -> !f.getId().equals(id))
+                .ifPresent(f -> {
+                    throw new RegraDeNegocioException("Já existe uma faculdade com esse nome e sigla.");
+                });
+
         FaculdadeMapper.updateEntityFromDTO(request, faculdade);
         return FaculdadeMapper.toDTO(faculdade);
     }
