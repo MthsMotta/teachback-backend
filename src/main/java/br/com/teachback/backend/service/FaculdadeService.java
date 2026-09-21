@@ -21,7 +21,7 @@ public class FaculdadeService {
         this.faculdadeRepository = faculdadeRepository;
     }
 
-    public FaculdadeResponse criar(FaculdadeRequest request) {
+    public FaculdadeResponse cadastrar(FaculdadeRequest request) {
         if (faculdadeRepository.findByNome(request.nome()).isPresent()){
             throw new RegraDeNegocioException("Já existe uma faculdade com esse nome.");
         }
