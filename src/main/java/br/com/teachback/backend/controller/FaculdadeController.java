@@ -2,6 +2,7 @@ package br.com.teachback.backend.controller;
 
 import br.com.teachback.backend.dto.request.FaculdadeDominioRequest;
 import br.com.teachback.backend.dto.request.FaculdadeRequest;
+import br.com.teachback.backend.dto.response.FaculdadeAutoCompleteResponse;
 import br.com.teachback.backend.dto.response.FaculdadeDominioResponse;
 import br.com.teachback.backend.dto.response.FaculdadeResponse;
 import br.com.teachback.backend.service.FaculdadeDominioService;
@@ -35,6 +36,11 @@ public class FaculdadeController {
     @GetMapping
     public ResponseEntity<List<FaculdadeResponse>> listar() {
         return ResponseEntity.ok(faculdadeService.listar());
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<FaculdadeAutoCompleteResponse>> buscar(@RequestParam String termo) {
+        return ResponseEntity.ok(faculdadeService.listarPorNomeOuSigla(termo));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

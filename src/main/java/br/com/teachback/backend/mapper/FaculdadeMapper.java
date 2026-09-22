@@ -1,6 +1,7 @@
 package br.com.teachback.backend.mapper;
 
 import br.com.teachback.backend.dto.request.FaculdadeRequest;
+import br.com.teachback.backend.dto.response.FaculdadeAutoCompleteResponse;
 import br.com.teachback.backend.dto.response.FaculdadeResponse;
 import br.com.teachback.backend.model.Faculdade;
 
@@ -13,6 +14,12 @@ public final class FaculdadeMapper {
                 faculdade.getNome(),
                 faculdade.getSigla(),
                 faculdade.getExemploTurma());
+    }
+
+    public static FaculdadeAutoCompleteResponse autoCompleteToDTO(Faculdade faculdade) {
+        return new FaculdadeAutoCompleteResponse(faculdade.getId(),
+                faculdade.getNome(),
+                faculdade.getSigla());
     }
 
     public static Faculdade toEntity(FaculdadeRequest faculdadeRequest) {

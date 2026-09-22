@@ -43,7 +43,7 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(customAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/faculdades").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/faculdades", "/faculdades/buscar").permitAll()
                         .requestMatchers("/auth/**", "/error").permitAll()
                         .anyRequest().authenticated()
                 )

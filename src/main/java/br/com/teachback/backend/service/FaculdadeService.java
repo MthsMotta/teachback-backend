@@ -1,6 +1,7 @@
 package br.com.teachback.backend.service;
 
 import br.com.teachback.backend.dto.request.FaculdadeRequest;
+import br.com.teachback.backend.dto.response.FaculdadeAutoCompleteResponse;
 import br.com.teachback.backend.dto.response.FaculdadeResponse;
 import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
@@ -46,5 +47,10 @@ public class FaculdadeService {
     public List<FaculdadeResponse> listar() {
         List<Faculdade> faculdades = faculdadeRepository.findAll();
         return faculdades.stream().map(FaculdadeMapper::toDTO).toList();
+    }
+
+    public List<FaculdadeAutoCompleteResponse> listarPorNomeOuSigla(String termo) {
+        List<Faculdade> faculdades = faculdadeRepository.findByNomeContainingIgnoreCaseOrSiglaContainingIgnoreCase(termo, termo);
+        return faculdades.stream().map(FaculdadeMapper::autoCompleteToDTO).toList();
     }
 }
