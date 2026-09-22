@@ -3,8 +3,12 @@ package br.com.teachback.backend.controller;
 import br.com.teachback.backend.dto.request.ModeradorRequest;
 import br.com.teachback.backend.dto.response.MensagemResponse;
 import br.com.teachback.backend.dto.response.ModeradorResponse;
+import br.com.teachback.backend.dto.response.ProfessorResponse;
 import br.com.teachback.backend.service.ModeradorService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +37,20 @@ public class ModeradorController {
     @GetMapping
     public ResponseEntity<List<ModeradorResponse>> listar(){
         return ResponseEntity.ok(moderadorService.listar());
+    }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE') or hasRole('MODERADOR')")
+    @GetMapping("/professores")
+    public ResponseEntity<Page<ProfessorResponse>> listarProfessores(
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(moderadorService.listarProfessores(pageable));
+    }
+
+    @PreAuthorize("hasRole('MODERADOR_CHEFE') or hasRole('MODERADOR')")
+    @GetMapping("/professores/pendentes")
+    public ResponseEntity<Page<ProfessorResponse>> listarProfessoresPendentes(
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(moderadorService.listarProfessoresPendentes(pageable));
     }
 
     @PreAuthorize("hasRole('MODERADOR_CHEFE')")
