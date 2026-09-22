@@ -2,12 +2,16 @@ package br.com.teachback.backend.service;
 
 import br.com.teachback.backend.dto.request.ModeradorRequest;
 import br.com.teachback.backend.dto.response.ModeradorResponse;
+import br.com.teachback.backend.dto.response.ProfessorResponse;
 import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
 import br.com.teachback.backend.mapper.ModeradorMapper;
+import br.com.teachback.backend.mapper.ProfessorMapper;
 import br.com.teachback.backend.model.*;
 import br.com.teachback.backend.repositories.FaculdadeDominioRepository;
 import br.com.teachback.backend.repositories.UsuarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -59,6 +63,18 @@ public class ModeradorService {
         var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         List<Usuario> moderadores = usuarioRepository.findByFaculdadeAndRole(usuarioLogado.getFaculdade(), Role.MODERADOR);
         return moderadores.stream().map(ModeradorMapper::toDTO).toList();
+    }
+
+    public Page<ProfessorResponse> listarProfessores(Pageable pageable){
+        var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        Page<Usuario> professores = usuarioRepository.findByFaculdadeAndRole(usuarioLogado.getFaculdade(), Role.PROFESSOR, pageable);
+        return professores.map(ProfessorMapper::toDTO);
+    }
+
+    public Page<ProfessorResponse> listarProfessoresPendentes(Pageable pageable){
+        var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        Page<Usuario> professores = usuarioRepository.findByFaculdadeAndRoleAndStatus(usuarioLogado.getFaculdade(), Role.PROFESSOR, StatusUsuario.PENDENTE_APROVACAO, pageable);
+        return professores.map(ProfessorMapper::toDTO);
     }
 
     private Usuario buscarModeradorDaFaculdade(Long id){
@@ -135,4 +151,6 @@ public class ModeradorService {
     public void ativarProfessor(Long id){
         buscarProfessorAtivoDaFaculdade(id).setStatus(StatusUsuario.ATIVO);
     }
+
+
 }
