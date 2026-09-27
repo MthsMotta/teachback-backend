@@ -3,7 +3,7 @@ package br.com.teachback.backend.seed;
 import br.com.teachback.backend.model.Role;
 import br.com.teachback.backend.model.StatusUsuario;
 import br.com.teachback.backend.model.Usuario;
-import br.com.teachback.backend.repositories.UsuarioRepository;
+import br.com.teachback.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;

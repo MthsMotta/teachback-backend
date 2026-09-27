@@ -1,6 +1,5 @@
-package br.com.teachback.backend.repositories;
+package br.com.teachback.backend.repository;
 
-import br.com.teachback.backend.dto.response.FaculdadeAutoCompleteResponse;
 import br.com.teachback.backend.model.Faculdade;
 import org.springframework.data.jpa.repository.JpaRepository;
 

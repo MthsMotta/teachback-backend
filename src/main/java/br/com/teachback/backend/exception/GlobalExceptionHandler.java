@@ -68,4 +68,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleLimiteTentativasExcedidoException(LimiteTentativasExcedidoException ex){
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ex.getMessage());
     }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<String> handleAcessoNegado(AcessoNegadoException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
 }

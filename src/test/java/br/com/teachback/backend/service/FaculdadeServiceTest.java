@@ -5,7 +5,7 @@ import br.com.teachback.backend.dto.response.FaculdadeResponse;
 import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
 import br.com.teachback.backend.model.Faculdade;
-import br.com.teachback.backend.repositories.FaculdadeRepository;
+import br.com.teachback.backend.repository.FaculdadeRepository;
 import br.com.teachback.backend.util.TestDataFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

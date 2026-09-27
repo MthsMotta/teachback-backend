@@ -1,7 +1,7 @@
 package br.com.teachback.backend.security;
 
 import br.com.teachback.backend.model.Usuario;
-import br.com.teachback.backend.repositories.UsuarioRepository;
+import br.com.teachback.backend.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

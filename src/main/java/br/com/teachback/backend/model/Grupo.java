@@ -21,8 +21,11 @@ public class Grupo {
     @Column(nullable=false)
     private String nome;
 
-    @Column(nullable=false, unique=true, columnDefinition = "CHAR(36)")
+    @Column(nullable = false, unique = true, length = 8)
     private String codigoConvite;
+
+    @Column(nullable = false, unique = true, length = 8)
+    private String codigoConviteProfessor;
 
     @ManyToOne
     @JoinColumn(name = "faculdade_id", nullable=false)
@@ -35,10 +38,6 @@ public class Grupo {
     @Column(nullable=false, updatable=false)
     @CreationTimestamp
     private LocalDateTime criadoEm;
-
-    @Column(nullable=false)
-    @UpdateTimestamp
-    private LocalDateTime ultimaAtividadeEm;
 
     @Column(nullable=false)
     @UpdateTimestamp

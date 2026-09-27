@@ -1,6 +1,5 @@
 package br.com.teachback.backend.service;
 
-import br.com.teachback.backend.config.CacheConfig;
 import br.com.teachback.backend.dto.request.CadastroRequest;
 import br.com.teachback.backend.dto.request.LoginRequest;
 import br.com.teachback.backend.dto.response.LoginResponse;
@@ -9,10 +8,10 @@ import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
 import br.com.teachback.backend.exception.TokenExpiradoException;
 import br.com.teachback.backend.model.*;
-import br.com.teachback.backend.repositories.FaculdadeDominioRepository;
-import br.com.teachback.backend.repositories.FaculdadeRepository;
-import br.com.teachback.backend.repositories.TokenConfirmacaoRepository;
-import br.com.teachback.backend.repositories.UsuarioRepository;
+import br.com.teachback.backend.repository.FaculdadeDominioRepository;
+import br.com.teachback.backend.repository.FaculdadeRepository;
+import br.com.teachback.backend.repository.TokenConfirmacaoRepository;
+import br.com.teachback.backend.repository.UsuarioRepository;
 import br.com.teachback.backend.security.TokenService;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.security.authentication.AuthenticationManager;

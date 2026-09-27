@@ -1,6 +1,6 @@
 package br.com.teachback.backend.service;
 
-import br.com.teachback.backend.repositories.UsuarioRepository;
+import br.com.teachback.backend.repository.UsuarioRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
