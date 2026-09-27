@@ -76,4 +76,41 @@ public final class TestDataFactory {
         token.setUsuario(usuario);
         return token;
     }
+
+    public static Grupo criarGrupo(Faculdade faculdade, StatusGrupo status) {
+        Grupo grupo = new Grupo();
+        grupo.setId(1L);
+        grupo.setNome("Grupo Teste");
+        grupo.setCodigoConvite("ABCD2345");
+        grupo.setCodigoConviteProfessor("WXYZ6789");
+        grupo.setFaculdade(faculdade);
+        grupo.setStatus(status);
+        return grupo;
+    }
+
+    public static GrupoProfessor criarGrupoProfessor(Grupo grupo, Usuario professor, RoleGrupo role) {
+        GrupoProfessor gp = new GrupoProfessor();
+        gp.setId(1L);
+        gp.setGrupo(grupo);
+        gp.setProfessor(professor);
+        gp.setRole(role);
+        return gp;
+    }
+
+    public static GrupoMembro criarGrupoMembro(Grupo grupo, Usuario aluno, StatusMembro status) {
+        GrupoMembro gm = new GrupoMembro();
+        gm.setId(1L);
+        gm.setGrupo(grupo);
+        gm.setAluno(aluno);
+        gm.setStatus(status);
+        return gm;
+    }
+
+    public static Enquete criarEnquete(Grupo grupo) {
+        Enquete enquete = new Enquete();
+        enquete.setId(1L);
+        enquete.setGrupo(grupo);
+        enquete.setStatus(StatusEnquete.ATIVA);
+        return enquete;
+    }
 }
