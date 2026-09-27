@@ -1,4 +1,4 @@
-package br.com.teachback.backend.repositories;
+package br.com.teachback.backend.repository;
 
 import br.com.teachback.backend.model.Enquete;
 import br.com.teachback.backend.model.EnqueteParticipacao;

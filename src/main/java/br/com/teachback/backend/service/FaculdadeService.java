@@ -7,7 +7,7 @@ import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
 import br.com.teachback.backend.exception.RegraDeNegocioException;
 import br.com.teachback.backend.mapper.FaculdadeMapper;
 import br.com.teachback.backend.model.Faculdade;
-import br.com.teachback.backend.repositories.FaculdadeRepository;
+import br.com.teachback.backend.repository.FaculdadeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

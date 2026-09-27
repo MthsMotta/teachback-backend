@@ -1,4 +1,4 @@
-package br.com.teachback.backend.repositories;
+package br.com.teachback.backend.repository;
 
 import br.com.teachback.backend.model.TokenConfirmacao;
 import br.com.teachback.backend.model.Usuario;
