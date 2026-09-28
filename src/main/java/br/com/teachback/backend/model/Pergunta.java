@@ -18,7 +18,7 @@ public class Pergunta {
     private String texto;
 
     @Column(nullable=false)
-    private byte ordem;
+    private short ordem;
 
     @Column(nullable=false)
     private boolean ativa;
