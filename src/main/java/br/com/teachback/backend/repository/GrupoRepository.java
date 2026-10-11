@@ -4,6 +4,7 @@ import br.com.teachback.backend.model.Grupo;
 import br.com.teachback.backend.model.StatusGrupo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface GrupoRepository extends JpaRepository<Grupo, Long> {
@@ -15,4 +16,6 @@ public interface GrupoRepository extends JpaRepository<Grupo, Long> {
     Optional<Grupo> findByCodigoConviteAndStatus(String codigoConvite, StatusGrupo status);
 
     Optional<Grupo> findByCodigoConviteProfessorAndStatus(String codigoConviteProfessor, StatusGrupo status);
+
+    List<Grupo> findAllByStatusATIVO();
 }
