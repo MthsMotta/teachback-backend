@@ -17,5 +17,5 @@ public interface GrupoRepository extends JpaRepository<Grupo, Long> {
 
     Optional<Grupo> findByCodigoConviteProfessorAndStatus(String codigoConviteProfessor, StatusGrupo status);
 
-    List<Grupo> findAllByStatusATIVO();
+    List<Grupo> findByStatus(StatusGrupo status);
 }

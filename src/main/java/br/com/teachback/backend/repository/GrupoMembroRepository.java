@@ -9,4 +9,5 @@ public interface GrupoMembroRepository extends JpaRepository<GrupoMembro, Long> 
 
     boolean existsByGrupoAndAluno(Grupo grupo, Usuario aluno);
     Page<GrupoMembro> findByAlunoAndStatusAndGrupo_Status(Usuario aluno, StatusMembro statusMembro, StatusGrupo statusGrupo, Pageable pageable);
+    boolean existsByGrupoAndAlunoAndStatus(Grupo grupo, Usuario aluno, StatusMembro status);
 }

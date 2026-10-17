@@ -113,4 +113,13 @@ public final class TestDataFactory {
         enquete.setStatus(StatusEnquete.ATIVA);
         return enquete;
     }
+
+    public static Pergunta criarPergunta(Long id, short ordem) {
+        Pergunta pergunta = new Pergunta();
+        pergunta.setId(id);
+        pergunta.setTexto("Pergunta de teste " + id);
+        pergunta.setOrdem(ordem);
+        pergunta.setAtiva(true);
+        return pergunta;
+    }
 }

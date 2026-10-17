@@ -28,7 +28,7 @@ public class EnqueteGrupoProcessor {
             enqueteRepository.save(vencida);
         }
 
-        if (enqueteRepository.existsByGrupoAndStatusATIVA(grupo)) {
+        if (enqueteRepository.existsByGrupoAndStatus(grupo, StatusEnquete.ATIVA)) {
             return false;
         }
 
