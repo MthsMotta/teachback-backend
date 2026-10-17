@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface EnqueteRepository extends JpaRepository<Enquete, Long> {
@@ -19,5 +20,7 @@ public interface EnqueteRepository extends JpaRepository<Enquete, Long> {
             "WHERE e.dataFim <= :dataLimite AND e.status = br.com.teachback.backend.model.StatusEnquete.ATIVA")
     int encerrarEnquetes(@Param("dataLimite") LocalDate dataLimite);
 
-    boolean existsByGrupoAndStatusATIVA(Grupo grupo);
+    boolean existsByGrupoAndStatus(Grupo grupo, StatusEnquete status);
+    List<Enquete> findByGrupoOrderByDataInicioAsc(Grupo grupo);
+
 }

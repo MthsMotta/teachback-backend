@@ -1,12 +1,14 @@
 package br.com.teachback.backend.service;
 
-import br.com.teachback.backend.model.Grupo;
-import br.com.teachback.backend.model.Pergunta;
-import br.com.teachback.backend.repository.EnqueteRepository;
-import br.com.teachback.backend.repository.GrupoRepository;
-import br.com.teachback.backend.repository.PerguntaRepository;
+import br.com.teachback.backend.dto.response.EnqueteAtivaResponse;
+import br.com.teachback.backend.dto.response.EnqueteResumoResponse;
+import br.com.teachback.backend.exception.RecursoNaoEncontradoException;
+import br.com.teachback.backend.mapper.EnqueteMapper;
+import br.com.teachback.backend.model.*;
+import br.com.teachback.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,10 @@ public class EnqueteService {
     private final GrupoRepository grupoRepository;
     private final PerguntaRepository perguntaRepository;
     private final EnqueteGrupoProcessor enqueteGrupoProcessor;
+    private final GrupoProfessorRepository grupoProfessorRepository;
+    private final GrupoMembroRepository grupoMembroRepository;
+    private final EnquetePerguntaRepository enquetePerguntaRepository;
+    private final EnqueteParticipacaoRepository enqueteParticipacaoRepository;
 
     @Transactional
     public void encerrarEnquetesVencidas() {
@@ -42,7 +48,7 @@ public class EnqueteService {
             return;
         }
 
-        List<Grupo> grupos = grupoRepository.findAllByStatusATIVO();
+        List<Grupo> grupos = grupoRepository.findByStatus(StatusGrupo.ATIVO);
 
         int criadas = 0;
         int puladas = 0;
@@ -62,5 +68,43 @@ public class EnqueteService {
         }
 
         log.info("Geração de enquetes em {}: {} criada(s), {} pulada(s), {} falha(s)", hoje, criadas, puladas, falhas);
+    }
+
+    @Transactional(readOnly = true)
+    public EnqueteAtivaResponse buscarEnqueteAtivaDoGrupo(Long grupoId) {
+        Usuario aluno = usuarioLogado();
+
+        Grupo grupo = grupoRepository.findById(grupoId)
+                .filter(g -> g.getStatus() == StatusGrupo.ATIVO)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Grupo não encontrado."));
+
+        if (!grupoMembroRepository.existsByGrupoAndAlunoAndStatus(grupo, aluno, StatusMembro.ATIVO)) {
+            throw new RecursoNaoEncontradoException("Grupo não encontrado.");
+        }
+
+        LocalDate hoje = LocalDate.now(FUSO);
+        Enquete enquete = enqueteRepository.findByGrupoAndStatus(grupo, StatusEnquete.ATIVA)
+                .filter(e -> e.getDataFim().isAfter(hoje))
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Não há enquete aberta para este grupo."));
+
+        List<EnquetePergunta> snapshot = enquetePerguntaRepository.findByEnqueteOrderByPergunta_OrdemAsc(enquete);
+        boolean jaRespondeu = enqueteParticipacaoRepository.existsByEnqueteAndAluno(enquete, aluno);
+        return EnqueteMapper.toAtivaDTO(enquete, snapshot, jaRespondeu);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EnqueteResumoResponse> listarEnquetesDoGrupo(Long grupoId) {
+        Usuario professor = usuarioLogado();
+
+        GrupoProfessor vinculo = grupoProfessorRepository.findByGrupo_IdAndProfessor(grupoId, professor)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Grupo não encontrado."));
+
+        return enqueteRepository.findByGrupoOrderByDataInicioAsc(vinculo.getGrupo()).stream()
+                .map(EnqueteMapper::toResumoDTO)
+                .toList();
+    }
+
+    private Usuario usuarioLogado() {
+        return (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
