@@ -7,6 +7,7 @@ import br.com.teachback.backend.dto.response.FaculdadeDominioResponse;
 import br.com.teachback.backend.dto.response.FaculdadeResponse;
 import br.com.teachback.backend.service.FaculdadeDominioService;
 import br.com.teachback.backend.service.FaculdadeService;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -60,7 +61,7 @@ public class FaculdadeController {
     @Operation(summary = "Busca faculdades por nome ou sigla", description = "Rota pública, para o autocomplete. Ignora maiúsculas e minúsculas.")
     @ApiResponse(responseCode = "200", description = "Faculdades que contêm o termo (lista vazia se nenhuma)",
             content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = FaculdadeAutoCompleteResponse.class))))
-    public ResponseEntity<List<FaculdadeAutoCompleteResponse>> buscar(@RequestParam String termo) {
+    public ResponseEntity<List<FaculdadeAutoCompleteResponse>> buscar(@Parameter(description = "Trecho do nome ou da sigla") @RequestParam String termo) {
         return ResponseEntity.ok(faculdadeService.listarPorNomeOuSigla(termo));
     }
 
