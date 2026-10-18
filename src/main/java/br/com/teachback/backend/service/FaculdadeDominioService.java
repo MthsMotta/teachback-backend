@@ -46,8 +46,12 @@ public class FaculdadeDominioService {
     }
 
     public List<FaculdadeDominioResponse> listar(Long faculdadeId){
+        var usuarioLogado = (Usuario) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         Faculdade faculdade = faculdadeRepository.findById(faculdadeId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Faculdade não encontrada"));
+        if(usuarioLogado.getRole() == Role.MODERADOR_CHEFE && !usuarioLogado.getFaculdade().getId().equals(faculdadeId)){
+            throw new RegraDeNegocioException("Você só pode listar domínios da sua própria faculdade");
+        }
         List<FaculdadeDominio> faculdadeDominios = faculdadeDominioRepository.findByFaculdade(faculdade);
         return faculdadeDominios.stream().map(FaculdadeDominioMapper::toDto).toList();
     }
